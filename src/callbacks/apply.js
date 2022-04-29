@@ -69,6 +69,7 @@ export default (credentialsCallback) => {
 
     const runNextFilter = () => {
       const event = mode === 1 ? 'clean' : 'smudge';
+      console.log(`START ${event} ${source.path()}`);
       const startTime = Date.now();
       return Promise.resolve()
         .then(() => {
@@ -83,6 +84,7 @@ export default (credentialsCallback) => {
         ).finally(() => {
           const endTime = Date.now();
           const deltaTime = endTime - startTime;
+          console.log(`FINISH ${event} ${source.path()} ${deltaTime}`);
           LFS_DEBUG.recordEvent(event, {
             source: source.path(),
             duration: deltaTime
