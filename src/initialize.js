@@ -16,6 +16,7 @@ const initialize = async (repo, options) => {
   let needsInstall = false;
   try {
     const repoConfig = await (await repo.config()).snapshot();
+    console.log('loaded config');
 
     // if for some reason we can't open the config, don't install
     needsInstall = true;
@@ -28,6 +29,7 @@ const initialize = async (repo, options) => {
     needsInstall = false;
   } catch (err) { /* ignore */ }
 
+  console.log({ needsInstall });
   if (needsInstall) {
     await core.install(builldArgs(options), { cwd: workdir });
   }
