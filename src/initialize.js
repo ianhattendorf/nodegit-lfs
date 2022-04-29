@@ -1,5 +1,3 @@
-import fse from 'fs-extra';
-import path from 'path';
 import R from 'ramda';
 import { core } from './commands/lfsCommands';
 
@@ -12,17 +10,27 @@ const builldArgs = (options) => {
   return R.join(' ', args);
 };
 
-const initialize = (repo, options) => {
+const initialize = async (repo, options) => {
   const workdir = repo.workdir();
-  const lfsDir = path.join(workdir, '.git', 'lfs');
 
-  return fse.pathExists(lfsDir)
-    .then((exists) => {
-      if (exists) {
-        return Promise.resolve();
-      }
-      return core.install(builldArgs(options), { cwd: workdir });
-    });
+  let needsInstall = false;
+  try {
+    const repoConfig = await (await repo.config()).snapshot();
+
+    // if for some reason we can't open the config, don't install
+    needsInstall = true;
+
+    // throws if not found
+    await repoConfig.getString('filter.lfs.clean');
+    await repoConfig.getString('filter.lfs.smudge');
+    await repoConfig.getString('filter.lfs.process');
+
+    needsInstall = false;
+  } catch (err) { /* ignore */ }
+
+  if (needsInstall) {
+    await core.install(builldArgs(options), { cwd: workdir });
+  }
 };
 
 export default initialize;
